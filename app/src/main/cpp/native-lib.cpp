@@ -269,7 +269,36 @@ static int registerNatives(JNIEnv *env) {
 }
 
 
+jint addNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    return a + b;
+}
 
+jint subNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    return a - b;
+}
+
+jint mulNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    return a * b;
+}
+
+jint divNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    return a / b;
+}
+
+static int registerNatives1(JNIEnv *env) {
+    jclass jclass1 = env->FindClass("com/xzq/jnitest/JniTools");
+    const JNINativeMethod methods[] = {
+            {"add", "(II)I", (void *) addNumber},
+            {"sub", "(II)I", (void *) subNumber},
+            {"mul", "(II)I", (void *) mulNumber},
+            {"div", "(II)I", (void *) divNumber}
+    };
+    // 动态注册native方法
+    if (env->RegisterNatives(jclass1, methods, sizeof(methods) / sizeof(methods[0])) < 0) {
+        return -1;
+    }
+    return JNI_VERSION_1_6;
+}
 
 // System.loadLibrary 加载库文件时，系统回调 JNI_OnLoad() 函数
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
@@ -278,8 +307,14 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
     assert(env != nullptr);
-    if (!registerNatives(env)) {
+    if (!registerNatives1(env)) {
         return JNI_ERR;
     }
     return JNI_VERSION_1_6;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xzq_jnitest_MainActivity_stringFromJNI(JNIEnv *env, jobject thiz) {
+    // TODO: implement stringFromJNI()
 }

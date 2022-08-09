@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">JniTest</string>
+    <string name="add">加</string>
+    <string name="sub">减</string>
+    <string name="mul">乘</string>
+    <string name="div">除</string>
 </resources>
