@@ -5,7 +5,7 @@
 
 #include <android/log.h>
 
-#define LOG_TAG "YIQI"
+#define LOG_TAG "TAG"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -18,6 +18,54 @@
  * https://www.zybuluo.com/cxm-2016/note/563686
  */
 
+char *Jstring2CStr(JNIEnv *env, jstring jstr) {
+    char *pStr = nullptr;
+    jclass jstrObj = env->FindClass("java/lang/String");
+    jstring encode = env->NewStringUTF("UTF-8");
+    jmethodID methodId = env->GetMethodID(jstrObj, "getBytes", "(Ljava/lang/String;)[B");
+    auto byteArray = (jbyteArray) env->CallObjectMethod(jstr, methodId, encode);
+    jsize strLen = env->GetArrayLength(byteArray);
+    jbyte *jBuf = env->GetByteArrayElements(byteArray, JNI_FALSE);
+    if (strLen > 0) {
+        pStr = (char *) malloc(strLen + 1);
+        memcpy(pStr, jBuf, strLen);
+        pStr[strLen] = 0;
+    }
+    env->ReleaseByteArrayElements(byteArray, jBuf, 0);
+    return pStr;
+}
+
+char *jstringTostr(JNIEnv *env, jstring jstr) {
+    char *pStr = nullptr;
+    jclass jstrObj = env->FindClass("java/lang/String");
+    jstring encode = env->NewStringUTF("UTF-8");
+    jmethodID methodId = env->GetMethodID(jstrObj, "getBytes", "(Ljava/lang/String;)[B");
+    auto byteArray = (jbyteArray) env->CallObjectMethod(jstr, methodId, encode);
+    jsize strLen = env->GetArrayLength(byteArray);
+    jbyte *jBuf = env->GetByteArrayElements(byteArray, JNI_FALSE);
+
+    if (strLen > 0) {
+        pStr = (char *) malloc(strLen + 1);
+        if (!pStr) {
+            return nullptr;
+        }
+        memcpy(pStr, jBuf, strLen);
+        pStr[strLen] = 0;
+    }
+    env->ReleaseByteArrayElements(byteArray, jBuf, 0);
+    return pStr;
+}
+
+
+//char* to jstring
+jstring stoJstring(JNIEnv *env, const char *pat) {
+    jclass strClass = env->FindClass("java/lang/String");
+    jmethodID ctorID = env->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
+    jbyteArray bytes = env->NewByteArray(strlen(pat));
+    env->SetByteArrayRegion(bytes, 0, strlen(pat), (jbyte *) pat);
+    jstring encoding = env->NewStringUTF("utf-8");
+    return (jstring) env->NewObject(strClass, ctorID, bytes, encoding);
+}
 
 
 char *Jstring2CStr(JNIEnv *pEnv, jstring pJstring);
@@ -150,24 +198,6 @@ Java_com_xzq_jnitest_MainActivity_testObject(JNIEnv *env, jobject thiz) {
         LOGE("------------>>  ageJint=%s", return_value);
     }
     env->DeleteLocalRef(clazz);
-}
-
-
-char *Jstring2CStr(JNIEnv *env, jstring jstr) {
-    char *rtn = nullptr;
-    jclass clsstring = env->FindClass("java/lang/String");
-    jstring strencode = env->NewStringUTF("UTF-8");
-    jmethodID mid = env->GetMethodID(clsstring, "getBytes", "(Ljava/lang/String;)[B");
-    jbyteArray barr = (jbyteArray) env->CallObjectMethod(jstr, mid, strencode);
-    jsize alen = env->GetArrayLength(barr);
-    jbyte *ba = env->GetByteArrayElements(barr, JNI_FALSE);
-    if (alen > 0) {
-        rtn = (char *) malloc(alen + 1);  //字符串拼接函数...
-        memcpy(rtn, ba, alen);
-        rtn[alen] = 0;
-    }
-    env->ReleaseByteArrayElements(barr, ba, 0);
-    return nullptr;
 }
 
 
@@ -316,5 +346,35 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_xzq_jnitest_MainActivity_stringFromJNI(JNIEnv *env, jobject thiz) {
-    // TODO: implement stringFromJNI()
+    std::string hello = "Hello from C++";
+    return env->NewStringUTF(hello.c_str());
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_xzq_jnitest_MainActivity_testCallJava(JNIEnv *env, jobject thiz) {
+
+    jclass cls = env->GetObjectClass(thiz);
+    jclass cls1 = env->FindClass("com/xzq/jnitest/MainActivity");
+    // 以上两种方式效果一样
+
+    jfieldID codeId = env->GetFieldID(cls, "code", "I");
+    jfieldID msgId = env->GetFieldID(cls, "msg", "Ljava/lang/String;");
+
+    jint code = env->GetIntField(thiz, codeId);
+    LOGE("------------>>  364 testCallJava :%d", code);
+    auto msg = (jstring) env->GetObjectField(thiz, msgId);
+    const char *cMsg = Jstring2CStr(env, msg);
+
+    LOGE("------------>>  368 testCallJava :%s", cMsg);
+    env->ReleaseStringUTFChars(msg, cMsg);
+
+    // 调用Java层方法
+    jmethodID callJavaMethodId = env->GetMethodID(cls, "cCallJava", "(Ljava/lang/String;)V");
+    jstring nativeMsg = env->NewStringUTF("java method cCallJava called");
+    env->CallVoidMethod(thiz, callJavaMethodId, nativeMsg);
+
+    // 所有的jclass,jstring 必须释放
+    env->DeleteLocalRef(msg);
+    env->DeleteLocalRef(nativeMsg);
+    env->DeleteLocalRef(cls);
 }

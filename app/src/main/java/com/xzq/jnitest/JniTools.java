@@ -17,7 +17,6 @@ public class JniTools {
 
     public native void update();
 
-
     //加法
     public static native int add(int a, int b);
 

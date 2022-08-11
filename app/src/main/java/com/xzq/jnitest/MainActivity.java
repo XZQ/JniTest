@@ -3,11 +3,13 @@ package com.xzq.jnitest;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.xzq.jnitest.databinding.ActivityMainBinding;
 
@@ -17,6 +19,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static {
         System.loadLibrary("jnitest");
     }
+
+
+    private static final String TAG = "MainActivity";
 
     private ActivityMainBinding binding;
 
@@ -36,8 +41,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(binding.getRoot());
         setupView();
         addListener();
+        testNative();
+
     }
 
+    private void testNative() {
+        testCallJava();
+    }
 
     private void setupView() {
         btnAdd = binding.add;
@@ -62,10 +72,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         double result = 0;
         String strA = inputA.getText().toString();
         String strB = inputB.getText().toString();
+        if (strA.isEmpty() || strB.isEmpty()) {
+            return;
+        }
         int a = Integer.parseInt(strA);
         int b = Integer.parseInt(strB);
         switch (v.getId()) {
             case R.id.add:
+                timeMillis();
                 result = JniTools.add(a, b);
                 break;
             case R.id.div:
@@ -90,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        Log.e("TAG", "------------>> s=" + s);
     public native int[] testArray(int[] arr1, String[] arr2);
 
-    // public native String stringFromJNI();
+    public native String stringFromJNI();
 
     public static native String fun1();
 
@@ -104,5 +118,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return "57";
     }
 
+    private int code = 10;
 
+    private String msg = "hello world";
+
+    public void cCallJava(String str) {
+        Log.i(TAG, "cCallJava: " + str);
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
+    public native void testCallJava();
+
+
+    public void timeMillis() {
+        for (int i = 0; i < 10; i++) {
+            long start = System.nanoTime();
+            long startTime = SystemClock.elapsedRealtime();
+            long startT = System.currentTimeMillis();
+            stringFromJNI();
+            long end = System.nanoTime();
+            long endTime = SystemClock.elapsedRealtime();
+            long endT = System.currentTimeMillis();
+            Log.i(TAG, "---------------->>  timeMillis: " + (end - start) + "   " + (endTime - startTime) + "   " + (endT - startT));
+        }
+    }
 }
