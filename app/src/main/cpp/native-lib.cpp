@@ -378,3 +378,21 @@ Java_com_xzq_jnitest_MainActivity_testCallJava(JNIEnv *env, jobject thiz) {
     env->DeleteLocalRef(nativeMsg);
     env->DeleteLocalRef(cls);
 }
+
+// 异常
+
+
+void testThrow(JNIEnv *env) {
+    jthrowable error = env->ExceptionOccurred();
+    if (error != nullptr) {
+        // 出现了异常
+    } else {
+        // 没出现异常
+    }
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xzq_jnitest_MainActivity_testExceptionNotCrash(JNIEnv *env, jobject thiz, jint i) {
+
+}

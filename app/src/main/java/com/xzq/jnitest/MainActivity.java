@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.i(TAG, "cCallJava: " + str);
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
     }
+
     public native void testCallJava();
 
 
@@ -141,4 +142,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.i(TAG, "---------------->>  timeMillis: " + (end - start) + "   " + (endTime - startTime) + "   " + (endT - startT));
         }
     }
+
+    public native String testExceptionNotCrash(int i) throws CustomException;
 }
