@@ -2,14 +2,8 @@
 #include <string>
 #include <iostream>
 
-
-#include <android/log.h>
-
-#define LOG_TAG "TAG"
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-
+#include "jvmti.h"
+#include "Logger.h"
 
 /***
  * https://www.jianshu.com/p/423a37c19c43
@@ -56,7 +50,6 @@ char *jstringTostr(JNIEnv *env, jstring jstr) {
     return pStr;
 }
 
-
 //char* to jstring
 jstring stoJstring(JNIEnv *env, const char *pat) {
     jclass strClass = env->FindClass("java/lang/String");
@@ -68,48 +61,8 @@ jstring stoJstring(JNIEnv *env, const char *pat) {
 }
 
 
-char *Jstring2CStr(JNIEnv *pEnv, jstring pJstring);
-
-//extern "C" JNIEXPORT jstring JNICALL
-//Java_com_xzq_jnitest_MainActivity_stringFromJNI(JNIEnv *env, jobject thiz) {
-//    jclass clazz = env->FindClass("com/xzq/jnitest/MainActivity");
-//    jstring jstring1;
-//
-//    if (clazz != nullptr) {
-//        jfieldID ageFieldId = env->GetFieldID(clazz, "age", "I");
-//        jint age = env->GetIntField(thiz, ageFieldId);
-//
-//        jfieldID nameFieldId = env->GetFieldID(clazz, "name", "Ljava/lang/String;");
-//        jstring nameStr = (jstring) env->GetObjectField(thiz, nameFieldId);
-//
-//        std::cout << nameStr << std::endl;
-//
-//        // 从jstring 获取C格式字符串
-//        char *name = (char *) env->GetStringUTFChars(nameStr, nullptr);
-//        jstring1 = reinterpret_cast<jstring>(name);
-//        LOGI("------------>> %s  %s", name, age);
-//
-//        // 释放
-//        env->ReleaseStringUTFChars(nameStr, name);
-//    }
-//    env->DeleteLocalRef(clazz);
-//    std::string hello = reinterpret_cast<const char *>(jstring1);
-//    return env->NewStringUTF(hello.c_str());
-//}
-
-
-//
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_xzq_jnitest_MainActivity_fun1(JNIEnv *env, jclass clazz) {
-    // TODO: implement fun1()
-}
-
-
-
-
 //  创建Java对象
-extern "C" JNIEXPORT jobject JNICALL
+extern "C" __attribute__((unused)) JNIEXPORT jobject JNICALL
 Java_com_xzq_jnitest_MainActivity_getIntegerObject(JNIEnv *env, jobject thiz, jint number) {
     // 创建Java对象
     jclass cls = env->FindClass("java/lang/Integer");
@@ -201,16 +154,6 @@ Java_com_xzq_jnitest_MainActivity_testObject(JNIEnv *env, jobject thiz) {
 }
 
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_xzq_jnitest_MainActivity_manipulationStr(JNIEnv *env, jobject thiz, jstring name) {
-    char *str = "你好";
-    char *string = Jstring2CStr(env, name);
-    strcat(str, string);
-    return env->NewStringUTF(str);
-//    jstring stringValue = env->NewStringUTF(strcat((char *) env->GetStringUTFChars(name, JNI_FALSE), "你好"));
-//    return stringValue;
-}
-
 extern "C"
 JNIEXPORT jintArray JNICALL
 Java_com_xzq_jnitest_MainActivity_testArray(JNIEnv *env, jobject thiz, jintArray arr1, jobjectArray arr2) {
@@ -260,95 +203,8 @@ Java_com_xzq_jnitest_JniTools_testException(JNIEnv *env, jobject thiz) {
      }
      env->DeleteLocalRef(clazz);*/
 }
-extern "C" JNIEXPORT void JNICALL
-c_init1(JNIEnv *env, jobject thiz) {
-}
-extern "C" JNIEXPORT void JNICALL
-c_init2(JNIEnv *env, jobject thiz, jint age) {
-}
-extern "C" JNIEXPORT jboolean JNICALL
-c_init3(JNIEnv *env, jobject thiz, jstring name) {
-}
-extern "C" JNIEXPORT void JNICALL
-c_update(JNIEnv *env, jobject thiz) {
-}
 
 
-static int registerNatives(JNIEnv *env) {
-    // 要注册的 java 类的路径(完整的包名和类名)
-    const char *className = "com/xzq/jnitest/JniTools";
-    jclass clazz = env->FindClass(className);
-    jint result = -1;
-    if (clazz == nullptr) {
-        return JNI_FALSE;
-    }
-    static JNINativeMethod methods[] = {
-            {"init",   "()V",                   (void *) c_init1},
-            {"init",   "(I)V",                  (void *) c_init2},
-            {"init",   "(Ljava/lang/String;)Z", (void *) c_init3},
-            {"update", "()V",                   (void *) c_update},
-    };
-    // 动态注册native方法
-    if (env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0])) < 0) {
-        return result;
-    }
-
-    // 返回成功
-    result = JNI_VERSION_1_6;
-    return result;
-}
-
-
-jint addNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
-    return a + b;
-}
-
-jint subNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
-    return a - b;
-}
-
-jint mulNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
-    return a * b;
-}
-
-jint divNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
-    return a / b;
-}
-
-static int registerNatives1(JNIEnv *env) {
-    jclass jclass1 = env->FindClass("com/xzq/jnitest/JniTools");
-    const JNINativeMethod methods[] = {
-            {"add", "(II)I", (void *) addNumber},
-            {"sub", "(II)I", (void *) subNumber},
-            {"mul", "(II)I", (void *) mulNumber},
-            {"div", "(II)I", (void *) divNumber}
-    };
-    // 动态注册native方法
-    if (env->RegisterNatives(jclass1, methods, sizeof(methods) / sizeof(methods[0])) < 0) {
-        return -1;
-    }
-    return JNI_VERSION_1_6;
-}
-
-// System.loadLibrary 加载库文件时，系统回调 JNI_OnLoad() 函数
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
-    JNIEnv *env = nullptr;
-    if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
-        return JNI_ERR;
-    }
-    assert(env != nullptr);
-    if (!registerNatives1(env)) {
-        return JNI_ERR;
-    }
-    return JNI_VERSION_1_6;
-}
-
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_xzq_jnitest_MainActivity_stringFromJNI(JNIEnv *env, jobject thiz) {
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
-}
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_xzq_jnitest_MainActivity_testCallJava(JNIEnv *env, jobject thiz) {
@@ -380,8 +236,6 @@ Java_com_xzq_jnitest_MainActivity_testCallJava(JNIEnv *env, jobject thiz) {
 }
 
 // 异常
-
-
 void testThrow(JNIEnv *env) {
     jthrowable error = env->ExceptionOccurred();
     if (error != nullptr) {
@@ -391,8 +245,124 @@ void testThrow(JNIEnv *env) {
     }
 }
 
+
+
+// 静态注册
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xzq_jnitest_JniTools_stringFromJNI(JNIEnv *env, jobject thiz) {
+
+}
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xzq_jnitest_JniTools_fun1(JNIEnv *env, jclass clazz) {
+
+}
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_xzq_jnitest_JniTools_getIntegerObject(JNIEnv *env, jobject thiz, jint number) {
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_xzq_jnitest_JniTools_testCallJava(JNIEnv *env, jobject thiz) {
+}
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xzq_jnitest_JniTools_manipulationStr(JNIEnv *env, jobject thiz, jstring name) {
+}
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_xzq_jnitest_JniTools_testExceptionNotCrash(JNIEnv *env, jobject thiz, jint i) {
+}
+extern "C"
+JNIEXPORT jintArray JNICALL
+Java_com_xzq_jnitest_JniTools_testArray(JNIEnv *env, jobject thiz, jintArray arr1, jobjectArray arr2) {
+}
+
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_xzq_jnitest_MainActivity_testExceptionNotCrash(JNIEnv *env, jobject thiz, jint i) {
+    jstring hello = env->NewStringUTF("hello world");
+    if (i > 100) {
+        jclass ex = env->FindClass("com/xzq/util/CustomException");
+        env->ThrowNew(ex, "i must < 100");
+        env->DeleteLocalRef(ex);
+    }
+    // https://developer.android.google.cn/ndk/guides
+    env->DeleteLocalRef(hello);
+    return hello;
+}
 
+extern "C" JNIEXPORT void JNICALL
+c_init1(JNIEnv *env, jobject thiz) {
+}
+extern "C" JNIEXPORT void JNICALL
+c_init2(JNIEnv *env, jobject thiz, jint age) {
+}
+extern "C" JNIEXPORT jboolean JNICALL
+c_init3(JNIEnv *env, jobject thiz, jstring name) {
+}
+extern "C" JNIEXPORT void JNICALL
+c_update(JNIEnv *env, jobject thiz) {
+
+}
+
+
+jint addNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    LOGE("------------>> addNumber= %d %d %d", a, b, (a + b));
+    return a + b;
+}
+
+jint subNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    LOGE("------------>> subNumber= %d %d %d", a, b, (a + b));
+    return a - b;
+}
+
+jint mulNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    LOGE("------------>> mulNumber= %d %d %d", a, b, (a + b));
+    return a * b;
+}
+
+jint divNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
+    LOGE("------------>> divNumber= %d %d %d", a, b, (a + b));
+    return a / b;
+}
+
+const JNINativeMethod methods[] = {
+        {"add",    "(II)I",                 (void *) addNumber},
+        {"sub",    "(II)I",                 (void *) subNumber},
+        {"mul",    "(II)I",                 (void *) mulNumber},
+        {"div",    "(II)I",                 (void *) divNumber},
+        {"init",   "()V",                   (void *) c_init1},
+        {"init",   "(I)V",                  (void *) c_init2},
+        {"init",   "(Ljava/lang/String;)Z", (void *) c_init3},
+        {"update", "()V",                   (void *) c_update},
+};
+
+static int registerNatives(JNIEnv *env) {
+    const char *className = "com/xzq/jnitest/JniTools";
+    jclass clazz = env->FindClass(className);
+    jint result = -1;
+    if (clazz == nullptr) {
+        return JNI_FALSE;
+    }
+    // 动态注册native方法
+    if (env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0])) < 0) {
+        return result;
+    }
+    return JNI_VERSION_1_6;
+}
+
+// System.loadLibrary 加载库文件时，系统回调 JNI_OnLoad() 函数
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env = nullptr;
+    if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+    assert(env != nullptr);
+    if (!registerNatives(env)) {
+        return JNI_ERR;
+    }
+    return JNI_VERSION_1_6;
 }

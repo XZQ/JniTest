@@ -1,13 +1,12 @@
 package com.xzq.jnitest;
 
+import com.xzq.util.CustomException;
+
 public class JniTools {
 
     public void func() {
         throw new IllegalArgumentException("test");
     }
-
-    public native void testException();
-
 
     public native void init();
 
@@ -17,16 +16,31 @@ public class JniTools {
 
     public native void update();
 
-    //加法
     public static native int add(int a, int b);
 
-    //减法
     public static native int sub(int a, int b);
 
-    //乘法
     public static native int mul(int a, int b);
 
-    //除法
     public static native int div(int a, int b);
+
+    public native void testException();
+
+    public native int[] testArray(int[] arr1, String[] arr2);
+
+    public static native String fun1();
+
+    public native Integer getIntegerObject(int number);
+
+    public native String manipulationStr(String name);
+
+    public native void testCallJava();
+
+    public native String testExceptionNotCrash(int i) throws CustomException;
+
+    public static String staticMethod(String name) {
+        return "57";
+    }
+
 
 }

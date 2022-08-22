@@ -1,4 +1,4 @@
-package com.xzq.jnitest;
+package com.xzq.util;
 
 public class CustomException extends Exception {
     CustomException() {
