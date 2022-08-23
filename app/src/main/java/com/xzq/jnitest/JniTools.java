@@ -23,23 +23,27 @@ public class JniTools {
 
     public static native int div(int a, int b);
 
-    public native void testException();
-
-    public native int[] testArray(int[] arr1, String[] arr2);
-
-    public static native String fun1();
-
-    public native Integer getIntegerObject(int number);
-
-    public native String manipulationStr(String name);
-
-    public native void testCallJava();
-
-    public native String testExceptionNotCrash(int i);
+//    public native void testException();
+//
+//    public native int[] testArray(int[] arr1, String[] arr2);
+//
+//    public static native String fun1();
+//
+//    public native Integer getIntegerObject(int number);
+//
+//    public native String manipulationStr(String name);
+//
+//    public native void testCallJava();
+//
+//    public native String testExceptionNotCrash(int i);
 
     public static String staticMethod(String name) {
         return "57";
     }
 
+
+    private native static void agentInit();
+
+    private native static void agentelease();
 
 }

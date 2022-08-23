@@ -127,13 +127,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_xzq_jnitest_JniTools_testCallJava
 extern "C" JNIEXPORT jstring JNICALL Java_com_xzq_jnitest_JniTools_testExceptionNotCrash
         (JNIEnv *, jobject, jint);
 
-
 #ifdef __cplusplus
 }
 #endif
 #endif
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_xzq_jnitest_JniTools_fun1(JNIEnv *env, jclass clazz) {
-
-}

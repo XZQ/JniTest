@@ -12,7 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.xzq.jnitest.databinding.ActivityMainBinding;
-import com.xzq.util.Monitor;
+import com.xzq.util.JvmtiHelper;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -40,8 +40,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        Monitor.init(this);
         setupView();
+        JvmtiHelper.init(this);
         addListener();
         testNative();
 

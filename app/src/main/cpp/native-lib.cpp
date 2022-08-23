@@ -6,12 +6,7 @@
 #include "Logger.h"
 #include "StringUtil.h"
 
-/***
- * https://www.jianshu.com/p/423a37c19c43
- * https://www.jianshu.com/p/222761e1b685
- * https://www.jianshu.com/p/b4431ac22ec2
- * https://www.zybuluo.com/cxm-2016/note/563686
- */
+
 void c_init1(JNIEnv *env, jobject thiz) {
 }
 
@@ -40,6 +35,7 @@ jint mulNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
 jint divNumber(JNIEnv *env, jclass clazz, jint a, jint b) {
     return a / b;
 }
+
 
 const JNINativeMethod methods[] = {
         {"add",    "(II)I",                 (void *) addNumber},
@@ -72,12 +68,110 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
     }
-    assert(env != nullptr);
-    if (!registerNatives(env)) {
-        return JNI_ERR;
-    }
+//    if (!registerNatives(env)) {
+//        return JNI_ERR;
+//    }
     return JNI_VERSION_1_6;
 }
+
+
+//jvmtiEnv *CreateJvmtiEnv(JavaVM *vm) {
+//    jvmtiEnv *jvmti_env;
+//    jint result = vm->GetEnv((void **) &jvmti_env, JVMTI_VERSION_1_2);
+//    if (result != JNI_OK) {
+//        return nullptr;
+//    }
+//    return jvmti_env;
+//}
+//
+//void setAllCapabilities(jvmtiEnv *jvmti) {
+//    jvmtiCapabilities capabilities;
+//    jvmtiError jvmtiError;
+//    jvmtiError = jvmti->GetPotentialCapabilities(&capabilities);
+//    jvmtiError = jvmti->AddCapabilities(&capabilities);
+//}
+
+
+jvmtiEnv *mJvmtiEnv = nullptr;
+
+/**
+ * Agent attch 回调
+ */
+extern "C" JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM *vm, char *options, void *reserved) {
+//    JNIEnv *env;
+//    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+//        return JNI_ERR;
+//    }
+//    LOGE("------------------------>>   JVM Agent_OnAttach success");
+//    jvmtiEnv *jvmtiEnv = CreateJvmtiEnv(vm);
+//    if (jvmtiEnv == nullptr) {
+//        return JNI_ERR;
+//    }
+//    setAllCapabilities(jvmtiEnv);
+
+    vm->GetEnv(reinterpret_cast<void **>(&mJvmtiEnv), JVMTI_VERSION_1_2);
+    if (mJvmtiEnv == nullptr) {
+        return JNI_ERR;
+    }
+    jvmtiCapabilities capabilities;
+    mJvmtiEnv->GetPotentialCapabilities(&capabilities);
+    mJvmtiEnv->AddCapabilities(&capabilities);
+    return JNI_OK;
+}
+
+void JNICALL objectAlloc(jvmtiEnv *jvmti_env, JNIEnv *jni_env, jthread thread,
+                         jobject object, jclass object_klass, jlong size) {
+    //对象创建
+}
+
+void JNICALL objectFree(jvmtiEnv *jvmti_env, jlong tag) {
+    //对象释放
+}
+
+void JNICALL methodEntry(jvmtiEnv *jvmti_env, JNIEnv *jni_env, jthread thread, jmethodID method) {
+    //方法进入
+}
+
+void JNICALL methodExit(jvmtiEnv *jvmti_env, JNIEnv *jni_env, jthread thread, jmethodID method, jboolean was_popped_by_exception,
+                        jvalue return_value) {
+    //方法退出
+}
+
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_xzq_jnitest_JniTools_agentInit(JNIEnv *env, jclass clazz) {
+    jvmtiEventCallbacks callbacks;
+    memset(&callbacks, 0, sizeof(callbacks));
+    callbacks.MethodEntry = &methodEntry;
+    callbacks.MethodExit = &methodExit;
+    callbacks.VMObjectAlloc = &objectAlloc;
+    callbacks.ObjectFree = &objectFree;
+    if (mJvmtiEnv != nullptr) {
+        mJvmtiEnv->SetEventCallbacks(&callbacks, sizeof(callbacks));
+        mJvmtiEnv->SetEventCallbacks(&callbacks, sizeof(callbacks));
+        //开启监听
+        mJvmtiEnv->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_VM_OBJECT_ALLOC, nullptr);
+        mJvmtiEnv->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_OBJECT_FREE, nullptr);
+        mJvmtiEnv->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_METHOD_ENTRY, nullptr);
+        mJvmtiEnv->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_METHOD_EXIT, nullptr);
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_xzq_jnitest_JniTools_agentelease(JNIEnv *env, jclass clazz) {
+    mJvmtiEnv->SetEventNotificationMode(JVMTI_DISABLE, JVMTI_EVENT_VM_OBJECT_ALLOC, nullptr);
+    mJvmtiEnv->SetEventNotificationMode(JVMTI_DISABLE, JVMTI_EVENT_OBJECT_FREE, nullptr);
+    mJvmtiEnv->SetEventNotificationMode(JVMTI_DISABLE, JVMTI_EVENT_METHOD_ENTRY, nullptr);
+    mJvmtiEnv->SetEventNotificationMode(JVMTI_DISABLE, JVMTI_EVENT_METHOD_EXIT, nullptr);
+}
+
+
+// https://www.jianshu.com/p/ab7bbc319dd9
+// http://events.jianshu.io/p/70de92815121
+// https://juejin.cn/post/7047381967058239525
+// https://juejin.cn/post/6844904013876445197
+// https://juejin.cn/post/7093858834476695588
+
 
 
 ////  创建Java对象
@@ -132,7 +226,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 //        char *name = (char *) env->GetStringUTFChars(nameJString, nullptr);
 //        LOGI("------------>>  name:%s; age:%d", name, ageJint);
 //        env->ReleaseStringUTFChars(nameJString, name);
-        // 对应 MainActivity 中的 public String name = "Jack";
+// 对应 MainActivity 中的 public String name = "Jack";
 //        jfieldID nameFieldId = env->GetFieldID(clazz, "name", "Ljava/lang/String;");
 //        jstring name_jstring = (jstring) env->GetObjectField(thiz, nameFieldId);
 //        LOGE("------------>>  nameJString=%s", name_jstring);
@@ -143,7 +237,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 //        env->ReleaseStringUTFChars(name_jstring, name);
 
 
-        // 对应 public static String KEY = "key";
+// 对应 public static String KEY = "key";
 //        jfieldID keyFieldId = env->GetStaticFieldID(clazz, "KEY", "Ljava/lang/String;");
 //        auto key_jsting = (jstring) env->GetStaticObjectField(clazz, keyFieldId);
 //
