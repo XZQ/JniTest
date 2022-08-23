@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 
 public class Monitor {
 
-
     public static void init(Context context) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -30,6 +29,7 @@ public class Monitor {
                     agentLibSo.delete();
                 }
                 Files.copy(Paths.get(new File(jvmtiAgentLibPath).getAbsolutePath()), Paths.get((agentLibSo).getAbsolutePath()));
+
             }
         } catch (Exception e) {
             e.printStackTrace();

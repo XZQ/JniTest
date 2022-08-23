@@ -1,12 +1,11 @@
 package com.xzq.jnitest;
 
-import com.xzq.util.CustomException;
 
 public class JniTools {
 
-    public void func() {
-        throw new IllegalArgumentException("test");
-    }
+//    public void func() {
+//        throw new IllegalArgumentException("test");
+//    }
 
     public native void init();
 
@@ -36,7 +35,7 @@ public class JniTools {
 
     public native void testCallJava();
 
-    public native String testExceptionNotCrash(int i) throws CustomException;
+    public native String testExceptionNotCrash(int i);
 
     public static String staticMethod(String name) {
         return "57";
